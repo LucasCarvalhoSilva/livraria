@@ -1,12 +1,29 @@
 import NaoEncontrado from "../erros/NaoEncontrado.js";
 import {autor, livro} from "../models/index.js"
-
+import RequisicaoIncorreta from "../erros/RequisicaoIncorreta.js"
 class LivroController {
 
   static async listarLivros (req, res, next) {
     try {
-      const listarLivros = await livro.find({}).populate("autor").populate("editora").exec();
-      res.status(200).json(listarLivros);
+      let { limite = 5, pagina = 1, ordenacao = "_id:-1"} = req.query;
+
+      limite = parseInt(limite);
+      pagina = parseInt(pagina);
+      const [campoOrder, ordem] = ordenacao.split(":");
+
+      if( limite > 0 && pagina > 0) {
+          const listarLivros = await livro.find({})
+          .sort({[campoOrder]:ordem})
+          .skip( (pagina-1) * limite )
+          .limit(limite)
+          .populate(["editora" ])
+          .populate(["autor"])
+          .exec();
+        res.status(200).json(listarLivros);
+      }else {
+        next( new RequisicaoIncorreta());
+      }
+
     } catch(erro) {
       next(erro);
     }
