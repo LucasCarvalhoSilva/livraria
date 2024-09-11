@@ -5,7 +5,14 @@ class EditoraController {
 
   static async listarEditora (req, res, next) {
     try {
-      const listarEditora = await editora.find({});
+      let { limite = 5, pagina = 1 } = req.query;
+
+      limite = parseInt(limite);
+      pagina = parseInt(pagina);
+      
+      const listarEditora = await editora.find({})
+        .skip( (pagina-1) * limite )
+        .limit(limite);
       res.status(200).json(listarEditora);
     } catch(erro) {
       next(erro);

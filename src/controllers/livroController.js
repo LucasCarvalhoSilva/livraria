@@ -31,7 +31,7 @@ class LivroController {
 
   static async listarLivroPorId (req, res, next) {
     try {
-      const id = req.params.id
+      const id = req.params.id;
       const livroEncontrado = await livro.findById(id).populate("autor").populate("editora").exec();
       if(livroEncontrado !== null) {
         res.status(200).json(livroEncontrado);
@@ -47,7 +47,7 @@ class LivroController {
   static async cadastrarLivros (req, res, next) {
     const novoLivro = req.body;
     try {
-      const livroCriado = await livro.create(novoLivro)
+      const livroCriado = await livro.create(novoLivro);
       res.status(201).json({message: "criado com sucesso", livro: livroCriado});
     } catch (erro){
       next(erro);

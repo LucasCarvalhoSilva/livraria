@@ -5,7 +5,13 @@ class AutorController {
 
   static async listarAutor (req, res, next) {
     try {
-      const listarAutor = await autor.find({});
+      let { limite = 5, pagina = 1 } = req.query;
+
+      limite = parseInt(limite);
+      pagina = parseInt(pagina);
+      const listarAutor = await autor.find({})
+        .skip( (pagina-1) * limite )
+        .limit(limite);
       res.status(200).json(listarAutor);
     } catch(erro) {
       next(erro);
