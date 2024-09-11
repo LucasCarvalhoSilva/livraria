@@ -13,6 +13,7 @@ class Auth{
       const tokenSemPrefixo = token.slice(7);
       const decoded = jwt.verify(tokenSemPrefixo, process.env.KEY );
       req.usuario = decoded;
+      console.log("Permissao, dados do usuario", decoded)
       next()
     }catch (error) {
       console.log(error)

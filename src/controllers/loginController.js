@@ -18,15 +18,16 @@ class LoginController {
       if(!senhaValida) {
         next(new UsuarioOuSenhaInvalidos().enviarResposta());
       }
-
+      console.log(user._id, senha )
       const token = jwt.sign(
         {
-          id: user.id, 
+          id: user._id,
           nivelDeAcesso: user.nivelDeAcesso
         },
         process.env.KEY,
         {expiresIn: '1h'}
       );
+      console.log("Token do usuario")
       res.status(200).json({
         message: 'Login realizado com sucesso',
         token

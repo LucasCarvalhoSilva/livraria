@@ -1,5 +1,5 @@
 import NaoEncontrado from "../erros/NaoEncontrado.js";
-import {autor, livro} from "../models/index.js"
+import {autor, livro, usuario} from "../models/index.js"
 import RequisicaoIncorreta from "../erros/RequisicaoIncorreta.js"
 class LivroController {
 
@@ -18,6 +18,7 @@ class LivroController {
           .limit(limite)
           .populate(["editora" ])
           .populate(["autor"])
+          .populate("createdBy")
           .exec();
         res.status(200).json(listarLivros);
       }else {
@@ -32,7 +33,8 @@ class LivroController {
   static async listarLivroPorId (req, res, next) {
     try {
       const id = req.params.id;
-      const livroEncontrado = await livro.findById(id).populate("autor").populate("editora").exec();
+
+      const livroEncontrado = await livro.findById(id).populate("autor").populate("editora").populate("createdBy").exec();
       if(livroEncontrado !== null) {
         res.status(200).json(livroEncontrado);
       } else {
@@ -45,7 +47,16 @@ class LivroController {
 
 
   static async cadastrarLivros (req, res, next) {
-    const novoLivro = req.body;
+    const userId = req.usuario.id
+    const novoLivro = {
+      titulo: req.body.titulo,
+      preco: req.body.preco,
+      editora: req.body.editora,
+      paginas: req.body.paginas,
+      autor: req.body.autor,
+      createdBy: userId
+    }
+    console.log(userId, novoLivro)
     try {
       const livroCriado = await livro.create(novoLivro);
       res.status(201).json({message: "criado com sucesso", livro: livroCriado});
@@ -84,11 +95,11 @@ class LivroController {
 
   static async listarLivrosPorFiltro (req, res, next) {
     try{
-        const {editora, titulo, nomeAutor } = req.query;
-
+        const {editora, titulo, nomeAutor, nickname } = req.query;
         let busca = {}
         if (editora) busca.editora = editora;
         if (titulo) busca.titulo = { $regex: titulo, $options: "i" };
+        
         if (nomeAutor) {
           const autorResultado = await autor.findOne({ nome: nomeAutor });
           if(autorResultado !== null) {
@@ -97,8 +108,17 @@ class LivroController {
             busca = null
           }
         }
+
+        if (nickname) {
+          const createdByResultado = await usuario.findOne({nickname});
+          if(createdByResultado !== null) {
+            busca.createdBy = createdByResultado._id;
+          }
+        }
+
+
         if (busca !== null) {
-          const livrosPorFiltro = await livro.find(busca).populate("autor").populate("editora");
+          const livrosPorFiltro = await livro.find(busca).populate("autor").populate("editora").populate("createdBy");
           if(livrosPorFiltro !== null) {
             res.status(200).json(livrosPorFiltro);
           } else {
